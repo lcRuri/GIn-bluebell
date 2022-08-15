@@ -5,6 +5,7 @@ import (
 	"bluebell/logger"
 	"bluebell/middlewares"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,7 +13,11 @@ import (
 func SetUp() *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
-	r.Use(logger.GinLogger(), logger.GinRecovery(true))
+	r.Use(logger.GinLogger(), logger.GinRecovery(true), middlewares.RateLimitMiddleware(2*time.Second, 1))
+
+	r.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK, "ok")
+	})
 
 	v1 := r.Group("/api/v1")
 
@@ -32,10 +37,6 @@ func SetUp() *gin.Engine {
 		v1.GET("/posts2", controller.GetPostListHandler2)
 
 	}
-
-	r.GET("/", func(c *gin.Context) {
-		c.String(http.StatusOK, "ok")
-	})
 
 	return r
 }
