@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gin-contrib/pprof"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -38,5 +40,6 @@ func SetUp() *gin.Engine {
 
 	}
 
+	pprof.Register(r) //注册pprof相关路由
 	return r
 }
