@@ -25,3 +25,10 @@ redis:
   db: 0
   password: ""
   pool_size: 100
+kafka:
+  address: 127.0.0.1:9092
+  topic: web_log
+  chan_size: 100000
+etcd:
+  address: 127.0.0.1:2379
+  collect_key: bluebell

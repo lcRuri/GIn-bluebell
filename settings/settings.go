@@ -14,6 +14,8 @@ type multipleConfig struct {
 	*LogConfig   `mapstructure:"log"`
 	*MySQLConfig `mapstructure:"mysql"`
 	*RedisConfig `mapstructure:"redis"`
+	*KafkaConfig `mapstructure:"kafka"`
+	*EtcdConfig  `mapstructure:"etcd"`
 }
 
 type AppConfig struct {
@@ -50,6 +52,17 @@ type LogConfig struct {
 	MaxSize    int    `mapstructure:"max_size"`
 	MaxAge     int    `mapstructure:"max_age"`
 	MaxBackups int    `mapstructure:"max_backups"`
+}
+
+type KafkaConfig struct {
+	Address  string `mapstructure:"address"`
+	Topic    string `mapstructure:"topic"`
+	ChanSize int    `mapstructure:"chan_size"`
+}
+
+type EtcdConfig struct {
+	Address    string `mapstructure:"address"`
+	CollectKey string `mapstructure:"collect_key"`
 }
 
 func Init() (err error) {
