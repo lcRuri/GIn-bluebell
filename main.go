@@ -2,14 +2,18 @@ package main
 
 import (
 	"bluebell/controller"
+	"bluebell/dao/etcd"
+	"bluebell/dao/kafka"
 	"bluebell/dao/mysql"
 	"bluebell/dao/redis"
+	"bluebell/dao/tailfile"
 	"bluebell/logger"
 	"bluebell/pkg/snowflake"
 	"bluebell/routes"
 	setting "bluebell/settings"
 	"context"
 	"fmt"
+
 	"log"
 	"net/http"
 	"os"
@@ -22,7 +26,7 @@ import (
 	"go.uber.org/zap"
 )
 
-//Go Web 通用脚手架
+// Go Web 通用脚手架
 func main() {
 	//1.加载配置
 	if err := setting.Init(); err != nil {
@@ -48,6 +52,35 @@ func main() {
 		return
 	}
 	defer redis.Close()
+
+	//初始化kafka连接
+	if err := kafka.Init(setting.Conf.KafkaConfig); err != nil {
+		fmt.Printf("init kafka failed,err:%v\n", err)
+		return
+	}
+
+	//初始化etcd连接
+	if err := etcd.Init(setting.Conf.EtcdConfig); err != nil {
+		fmt.Printf("init etcd failed,err:%v\n", err)
+		return
+	}
+	//从etcd中拉取要收集日志的配置项
+	allconf, err := etcd.GetConf(setting.Conf.EtcdConfig.CollectKey)
+	if err != nil {
+		fmt.Printf("getConf from etcd failed,err:%v\n", err)
+		return
+	}
+	fmt.Println(allconf)
+
+	//开启一个goroutine去监听etcd里面key的变化
+	go etcd.WatchConf(setting.Conf.EtcdConfig.CollectKey)
+
+	err = tailfile.Init(allconf)
+	if err != nil {
+		fmt.Printf("init tailfile failed,err:", err)
+		return
+	}
+	fmt.Println("init tailfile success!")
 
 	if err := snowflake.Init(setting.Conf.AppConfig.StartTime, setting.Conf.AppConfig.MachineID); err != nil {
 		fmt.Printf("init snowflake failed, err:%v\n", err)
